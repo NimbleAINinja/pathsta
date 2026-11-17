@@ -38,6 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PathEditorViewDelegate
   private let panel = PathOverlayPanel()
   private let pathEditor = PathEditorView()
   private let preferences = PathstaPreferences()
+  private let zoxideJumps = ZoxideJumps()
   private let launchAtLoginService = SMAppService.mainApp
   private let updaterController = SPUStandardUpdaterController(
     startingUpdater: true,
@@ -80,7 +81,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PathEditorViewDelegate
   }
 
   func pathEditorDidRequestNavigation(_ text: String) {
-    switch PathResolver.resolve(text, relativeTo: currentDirectory) {
+    switch zoxideJumps.resolve(text, relativeTo: currentDirectory) {
     case .failure(let error):
       pathEditor.rejectNavigation(message: error.localizedDescription)
     case .success(let directory):
@@ -135,6 +136,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PathEditorViewDelegate
     preferences.allowsDirectoryCreation = isEnabled
   }
 
+  func statusItemDidSetZoxideEnabled(_ isEnabled: Bool) {
+    zoxideJumps.isEnabled = isEnabled
+  }
+
   func statusItemDidSetLaunchAtLoginEnabled(_ isEnabled: Bool) -> Bool {
     preferences.launchAtLogin = isEnabled
 
@@ -173,6 +178,7 @@ extension AppDelegate {
   private func configurePreferences() {
     pathEditor.playsErrorSound = preferences.playsErrorSound
     pathEditor.allowsDirectoryCreation = preferences.allowsDirectoryCreation
+    zoxideJumps.attach(to: pathEditor)
   }
 
   private func configureLaunchAtLogin() {
@@ -199,6 +205,8 @@ extension AppDelegate {
       errorSoundEnabled: pathEditor.playsErrorSound,
       directoryCreationEnabled: pathEditor.allowsDirectoryCreation,
       launchAtLoginEnabled: launchAtLoginService.status == .enabled,
+      zoxideEnabled: zoxideJumps.isEnabled,
+      zoxideAvailable: zoxideJumps.isAvailable,
       checkForUpdatesTarget: updaterController,
       checkForUpdatesAction: #selector(SPUStandardUpdaterController.checkForUpdates(_:))
     )
@@ -372,6 +380,7 @@ extension AppDelegate {
     case .success(let navigatedDirectory):
       currentDirectory = navigatedDirectory
       pathEditor.finishNavigation(path: navigatedDirectory)
+      zoxideJumps.record(navigatedDirectory)
       Self.logger.debug(
         "Finder navigation succeeded: \(navigatedDirectory.path, privacy: .private)"
       )

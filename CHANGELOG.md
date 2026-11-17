@@ -4,6 +4,14 @@ All notable changes to Pathsta are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- Jump to [zoxide](https://github.com/ajeetdsouza/zoxide) matches by typing keywords instead of a path (can be disabled from the menu bar).
+
+### Fixed
+
+- Ad hoc signed local builds no longer abort at launch while loading Sparkle.
+
 ## [1.0.2] - 2026-09-21
 
 ### Added

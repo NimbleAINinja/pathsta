@@ -48,6 +48,7 @@ final class PathCompletionController {
     editor: NSTextView,
     relativeTo currentDirectory: URL?,
     backwards: Bool,
+    fallbackProvider: CompletionProvider? = nil,
     onMissingCompletion: @escaping @MainActor () -> Void
   ) {
     if var currentCycle = cycle,
@@ -68,7 +69,11 @@ final class PathCompletionController {
     let sourceText = editor.string
     let sourceSelection = editor.selectedRange
     let worker = Task.detached(priority: .userInitiated) { [completionProvider] in
-      completionProvider(sourceText, sourceSelection, currentDirectory)
+      let completions = completionProvider(sourceText, sourceSelection, currentDirectory)
+      guard completions.isEmpty, let fallbackProvider, !Task.isCancelled else {
+        return completions
+      }
+      return fallbackProvider(sourceText, sourceSelection, currentDirectory)
     }
     requestTask = Task { [weak self, weak editor] in
       let completions = await withTaskCancellationHandler {

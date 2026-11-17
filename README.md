@@ -26,6 +26,7 @@ Pathsta requires macOS 27 or later. The reusable core remains tested on macOS 14
 ## Features
 
 - **Path completion:** Press Tab or Shift-Tab to cycle through matching folders, including symbolic links.
+- **zoxide jumps:** With [zoxide](https://github.com/ajeetdsouza/zoxide) installed, type keywords instead of a path and press Return to jump to the best match, or press Tab to cycle through matches. Folders opened through Pathsta are added to zoxide. Text that starts with `/`, `~`, `./`, `../` or `file:` is always treated as a path. Can be disabled from the menu bar.
 - **Safe folder creation:** Press Shift-Return to create one missing folder and navigate to it. Can be disabled from the menu bar.
 - **Not found feedback:** Play a sound when a path cannot be found. Can be disabled from the menu bar.
 - **Live synchronization:** The field follows the active Finder window and updates when its location changes.

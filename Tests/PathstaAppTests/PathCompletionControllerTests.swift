@@ -61,6 +61,66 @@ struct PathCompletionControllerTests {
 
     #expect(await wait(for: cancelled))
   }
+
+  @Test("Falls back to jump matches when no folder name completes")
+  @MainActor
+  func fallsBackToJumpMatches() async {
+    let controller = PathCompletionController { _, _, _ in [] }
+    let editor = NSTextView()
+    editor.string = "proj"
+    editor.selectedRange = NSRange(location: 4, length: 0)
+    let fallback: PathCompletionController.CompletionProvider = { text, _, _ in
+      text == "proj" ? ["/work/project/", "/old/projects/"] : []
+    }
+
+    controller.complete(
+      editor: editor,
+      relativeTo: nil,
+      backwards: false,
+      fallbackProvider: fallback,
+      onMissingCompletion: {}
+    )
+    #expect(await waitUntil { editor.string == "/work/project/" })
+
+    controller.complete(
+      editor: editor,
+      relativeTo: nil,
+      backwards: false,
+      fallbackProvider: fallback,
+      onMissingCompletion: {}
+    )
+    #expect(editor.string == "/old/projects/")
+  }
+
+  @Test("Prefers folder name completions over jump matches")
+  @MainActor
+  func prefersFolderCompletions() async {
+    let controller = PathCompletionController { _, _, _ in ["Projects/"] }
+    let editor = NSTextView()
+    editor.string = "proj"
+    editor.selectedRange = NSRange(location: 4, length: 0)
+
+    controller.complete(
+      editor: editor,
+      relativeTo: nil,
+      backwards: false,
+      fallbackProvider: { _, _, _ in ["/work/project/"] },
+      onMissingCompletion: {}
+    )
+
+    #expect(await waitUntil { editor.string == "Projects/" })
+  }
+}
+
+@MainActor
+private func waitUntil(_ condition: @MainActor () -> Bool) async -> Bool {
+  for _ in 0..<200 {
+    if condition() {
+      return true
+    }
+    try? await Task.sleep(for: .milliseconds(5))
+  }
+  return condition()
 }
 
 private func wait(for semaphore: DispatchSemaphore) async -> Bool {

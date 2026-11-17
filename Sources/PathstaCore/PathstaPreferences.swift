@@ -6,6 +6,7 @@ public final class PathstaPreferences {
     static let allowsDirectoryCreation = "allowsDirectoryCreation"
     static let launchAtLogin = "launchAtLogin"
     static let playsErrorSound = "playsErrorSound"
+    static let usesZoxide = "usesZoxide"
   }
 
   private let defaults: UserDefaults
@@ -17,6 +18,7 @@ public final class PathstaPreferences {
       Key.allowsDirectoryCreation: true,
       Key.launchAtLogin: true,
       Key.playsErrorSound: true,
+      Key.usesZoxide: true,
     ])
   }
 
@@ -36,5 +38,11 @@ public final class PathstaPreferences {
   public var playsErrorSound: Bool {
     get { defaults.bool(forKey: Key.playsErrorSound) }
     set { defaults.set(newValue, forKey: Key.playsErrorSound) }
+  }
+
+  /// Whether text that isn't a path may jump to a zoxide match.
+  public var usesZoxide: Bool {
+    get { defaults.bool(forKey: Key.usesZoxide) }
+    set { defaults.set(newValue, forKey: Key.usesZoxide) }
   }
 }

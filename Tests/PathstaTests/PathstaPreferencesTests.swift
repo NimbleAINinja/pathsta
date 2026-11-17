@@ -10,6 +10,7 @@ struct PathstaPreferencesTests {
       #expect(preferences.allowsDirectoryCreation)
       #expect(preferences.launchAtLogin)
       #expect(preferences.playsErrorSound)
+      #expect(preferences.usesZoxide)
     }
   }
 
@@ -25,6 +26,10 @@ struct PathstaPreferencesTests {
       #expect(!preferences.playsErrorSound)
 
       preferences.launchAtLogin = false
+      #expect(!preferences.launchAtLogin)
+
+      preferences.usesZoxide = false
+      #expect(!preferences.usesZoxide)
       #expect(!preferences.launchAtLogin)
     }
   }

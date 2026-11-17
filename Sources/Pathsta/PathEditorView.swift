@@ -17,6 +17,7 @@ final class PathEditorView: NSView, NSTextFieldDelegate {
   var isEditing: Bool { editing }
   var playsErrorSound = true
   var allowsDirectoryCreation = true
+  var jumpCompletionProvider: PathCompletionController.CompletionProvider?
   var sidebarWidth: CGFloat = 0 {
     didSet {
       if abs(sidebarWidth - oldValue) >= 0.5 {
@@ -266,7 +267,8 @@ extension PathEditorView {
     completionController.complete(
       editor: editor,
       relativeTo: baseDirectory,
-      backwards: backwards
+      backwards: backwards,
+      fallbackProvider: jumpCompletionProvider
     ) { [weak self] in
       self?.playErrorSoundIfEnabled()
     }

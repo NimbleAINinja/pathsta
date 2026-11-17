@@ -6,6 +6,7 @@ protocol StatusItemControllerDelegate: AnyObject {
   func statusItemDidSetErrorSoundEnabled(_ isEnabled: Bool)
   func statusItemDidSetDirectoryCreationEnabled(_ isEnabled: Bool)
   func statusItemDidSetLaunchAtLoginEnabled(_ isEnabled: Bool) -> Bool
+  func statusItemDidSetZoxideEnabled(_ isEnabled: Bool)
 }
 
 @MainActor
@@ -18,6 +19,7 @@ final class StatusItemController: NSObject {
   private let errorSoundMenuItem = NSMenuItem()
   private let directoryCreationMenuItem = NSMenuItem()
   private let launchAtLoginMenuItem = NSMenuItem()
+  private let zoxideMenuItem = NSMenuItem()
 
   var menu: NSMenu? {
     statusItem.menu
@@ -28,12 +30,15 @@ final class StatusItemController: NSObject {
     errorSoundEnabled: Bool,
     directoryCreationEnabled: Bool,
     launchAtLoginEnabled: Bool,
+    zoxideEnabled: Bool,
+    zoxideAvailable: Bool,
     checkForUpdatesTarget: AnyObject,
     checkForUpdatesAction: Selector
   ) {
     self.delegate = delegate
     super.init()
     configureButton()
+    configureZoxideItem(isEnabled: zoxideEnabled, isAvailable: zoxideAvailable)
     configureMenu(
       errorSoundEnabled: errorSoundEnabled,
       directoryCreationEnabled: directoryCreationEnabled,
@@ -41,6 +46,11 @@ final class StatusItemController: NSObject {
       checkForUpdatesTarget: checkForUpdatesTarget,
       checkForUpdatesAction: checkForUpdatesAction
     )
+  }
+
+  @objc private func toggleZoxide() {
+    zoxideMenuItem.state = zoxideMenuItem.state == .on ? .off : .on
+    delegate?.statusItemDidSetZoxideEnabled(zoxideMenuItem.state == .on)
   }
 
   @objc private func toggleErrorSound() {
@@ -105,6 +115,7 @@ final class StatusItemController: NSObject {
       isEnabled: directoryCreationEnabled
     )
     menu.addItem(directoryCreationMenuItem)
+    menu.addItem(zoxideMenuItem)
     configureToggleItem(
       launchAtLoginMenuItem,
       title: "Launch at Login",
@@ -132,6 +143,20 @@ final class StatusItemController: NSObject {
     quitItem.target = NSApp
     menu.addItem(quitItem)
     statusItem.menu = menu
+  }
+
+  private func configureZoxideItem(isEnabled: Bool, isAvailable: Bool) {
+    guard isAvailable else {
+      // An item without an action is drawn disabled, which explains why jumps do nothing.
+      zoxideMenuItem.title = "Jump with zoxide (Not Installed)"
+      return
+    }
+    configureToggleItem(
+      zoxideMenuItem,
+      title: "Jump with zoxide",
+      action: #selector(toggleZoxide),
+      isEnabled: isEnabled
+    )
   }
 
   private func configureToggleItem(
