@@ -74,8 +74,19 @@ sign_component "${sparkle_version}/XPCServices/Downloader.xpc" \
 sign_component "${sparkle_version}/Autoupdate"
 sign_component "${sparkle_version}/Updater.app"
 sign_component "${sparkle_framework}"
+app_entitlements="${REPOSITORY_ROOT}/Resources/Pathsta.entitlements"
+if [[ "${signing_identity}" == "-" ]]; then
+  # Ad hoc signatures carry no Team ID, so Hardened Runtime library validation
+  # rejects the embedded Sparkle framework and the app aborts at launch.
+  # Exempt local ad hoc builds only; Developer ID releases keep validation on.
+  app_entitlements="${RELEASE_ROOT}/Pathsta-adhoc.entitlements"
+  cp "${REPOSITORY_ROOT}/Resources/Pathsta.entitlements" "${app_entitlements}"
+  /usr/libexec/PlistBuddy \
+    -c "Add :com.apple.security.cs.disable-library-validation bool true" \
+    "${app_entitlements}"
+fi
 sign_component "${APP_PATH}" \
-  --entitlements "${REPOSITORY_ROOT}/Resources/Pathsta.entitlements"
+  --entitlements "${app_entitlements}"
 codesign --verify --deep --strict --verbose=2 "${APP_PATH}"
 
 actual_version="$(defaults read "${APP_PATH}/Contents/Info" CFBundleShortVersionString)"
